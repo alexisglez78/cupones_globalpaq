@@ -1,6 +1,6 @@
 import 'bulma/css/bulma.css';
 import Formulario from './components/Formulario';
-import Header from './components/header';
+import Header from './components/Header'
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { makeStyles, withStyles } from '@material-ui/core/styles';
@@ -15,7 +15,7 @@ import AirportShuttleIcon from '@material-ui/icons/AirportShuttle';
 import StepConnector from '@material-ui/core/StepConnector';
 import Button from '@material-ui/core/Button';
 import Typography from '@material-ui/core/Typography';
-import Package from './components/package';
+import Package from './components/Package';
 import Recoleccion from './components/Recoleccion'
 import SearchCupon from './components/SearchCupon';
 import Dialog from './components/Dialog';
@@ -157,7 +157,6 @@ function validaPaquete (param) {
                   'message': 'Debe de ingresar el contenido de su paquete'
           }
   }
-  console.log(param.valor)
   if (param.valor  === '' || isNaN(param.valor)) {
           return {
                   'error': true,
@@ -360,7 +359,7 @@ if (peso_volumetrico > peso) {
       return { 'error': false }
 }
 }
-async function generarGuia (datos) {
+async function generarGuia (datos,paqueteria) {
 const data = new FormData();
 data.append('cupon', datos.cupon);
 data.append('shipper_nombre', datos.nombreRemitente);
@@ -391,24 +390,36 @@ data.append('packageLineItem_ancho', datos.ancho);
 data.append('packageLineItem_alto', datos.alto);
 data.append('packageLineItem_contenido', datos.contenido);
 data.append('packageLineItem_valor', datos.valor);
-data.append('guia_rec', datos.check);
+data.append('guia_rec', (datos.check == true)?'si':'no');
 data.append('date_pickup', datos.fecha);
-data.append('package_time_ready', datos.hora1);
-data.append('last_available_hour', datos.hora2);
+data.append('package_time_ready', datos.hora1+':00');
+data.append('last_available_hour', datos.hora2+':00');
 data.append('shipper_instructions', datos.referenciasRemitente);
 data.append('shipper_colonia', datos.coloniaRemitente);
 data.append('emailR', datos.emailRemitente);
 
-const x = await fetch('https://sistema.globalpaq.mx/api/beta/public/codigo/generar', {
+const x = await fetch('https://sistema.globalpaq.mx/api/v2/public/codigo/generar', {
       method: 'POST',
       body: data
 })
 var res = await x.json();
+console.log(res);
+
 if (res.ok === true) {
+  if(res.recoleccion){
+    return {
+      'error': false,
+      'label': res.message.label,
+      'tracking': res.message.tracking,
+      'recoleccion': res.recoleccion
+}
+  }
+
       return {
               'error': false,
               'label': res.message.label,
-              'tracking': res.message.tracking
+              'tracking': res.message.tracking,
+             
       }
 }
 if (res.error === true) {
@@ -418,6 +429,22 @@ if (res.error === true) {
               'dst': 'base'
 
       }
+}
+if (res.error === false) {
+  if(paqueteria == 'estafeta'){
+    return {
+      'error': false,
+      'label': res.message.label,
+      'tracking': res.message.tracking,
+  }}else{
+
+    return {
+      'error': false,
+      'label': res.label,
+      'tracking': res.tracking,
+     
+  }
+  }
 }
 if (res.ok === false) {
       if (res.message.message) {
@@ -497,6 +524,8 @@ export default function CustomizedSteppers() {
   const [sobrepeso, setsobrepeso] = useState();
   const [dialog, setdialog] = useState(false);
   const [tracking, settracking] = useState(false);
+  const [numeroRecoleccion, setnumeroRecoleccion] = useState(false);
+
   const [label, setlabel] = useState(false);
   const [snackMesagge, setSnackMessage] = useState();
   const [state, setState] = React.useState({
@@ -583,12 +612,14 @@ export default function CustomizedSteppers() {
 
  const validaDecimal =(event) =>{
   event.preventDefault()
-    const x=Number(event.target.value).toFixed();
+  
+  const x =event.target.value.replace(/[^0-9]*/g, '');
       setData({
         ...data,
         [event.target.name]:x
       })
 }
+
  const llenarCp =(event) =>{
   event.preventDefault()
   const x =event.target.value.replace(/[^0-9]*/g, '');
@@ -599,9 +630,9 @@ export default function CustomizedSteppers() {
     })
     .then((respuesta) => respuesta.json())
     .then((resp) => {
-        // console.log(resp);
-
-        console.log(event.target.name);
+        if(resp.error == true){
+          return alert('No se Encontro su Codigo Postal, Favor de Verificar')
+        }
         if(event.target.name == 'cpRemitente'){
           setData({
             ...data,
@@ -700,6 +731,11 @@ export default function CustomizedSteppers() {
     }
   }
   
+  function dosDecimales(n) {
+    let t=n.toString();
+    let regex=/(\d*.\d{0,2})/;
+    return t.match(regex)[0];
+  }
 
 
   const handleNext = async () => {
@@ -772,20 +808,25 @@ export default function CustomizedSteppers() {
       if (ressobrepeso.error === true) {
         if (sobrepeso === 0) {
           setgenerarActivo(false);
-          return alert('No cuentas con el permiso para crear un sobrepeso, tu peso volumetrico es de ' + ressobrepeso.peso_volumetrico + 'Kg');
+          return alert('El limite amparado por el servicio contratado es de ' + dosDecimales(ressobrepeso.peso_volumetrico) + 'Kg');
         }
       }
-      let guia = await generarGuia(data);
+      let guia = await generarGuia(data,paqueteria);
+      console.log('respuesta',guia);
       if (guia.error === true) {
         setgenerarActivo(false);
         return alert(guia.message)
       }
+      if(guia.recoleccion){
+        setnumeroRecoleccion(guia.recoleccion);
+      }
+      console.log(numeroRecoleccion);
       setData({
         ...data,
         'check': false
       })
       settracking(guia.tracking);
-      const xx = await fetch(`https://sistema.globalpaq.mx/api/beta/public/${paqueteria}-pdf/${guia.tracking}`)
+      const xx = await fetch(`https://sistema.globalpaq.mx/api/v2/public/${paqueteria}-pdf/${guia.tracking}`)
       const res = await xx.json();
       setlabel(res.data);
       setSnack('success');
@@ -807,7 +848,7 @@ export default function CustomizedSteppers() {
   
   };
   const handleClickOpen = () =>setdialog(true);
-  const handleClickClose = () => setdialog(false);
+  const handleClickClose = () => {setdialog(false); setnumeroRecoleccion('');};
 
   function getData() {
     const x = localStorage.getItem('Cupones');
@@ -838,16 +879,17 @@ export default function CustomizedSteppers() {
   }
   if (cupon === false) {
     return (
-      <div>
-        <Header></Header>
+      <div style={{marginTop:'10%'}}>
+        {/* <Header></Header> */}
         <Dialog
           open={dialog}
           handleClickOpen={handleClickOpen}
           handleClose={handleClickClose}
           tracking={tracking}
           href={label}
+          recoleccion={numeroRecoleccion}
         />
-        <h1 className="title is-capitalized" style={{ textAlign: 'center' }}>Generacion de guias globalpaq por cupones</h1>
+        <h1 className="title is-capitalized" style={{ textAlign: 'center' }}>Generacion de guias por cupones</h1>
         <div className="container" style={{ textAlign: 'center', alignContent: 'center' }} >
           <SearchCupon
             nombreBoton={info}
@@ -863,8 +905,8 @@ export default function CustomizedSteppers() {
     )
   }
   return (
-    <div >
-      <Header></Header>
+    <div style={{marginTop:'10%'}}>
+      {/* <Header></Header> */}
       <h1 className="title is-capitalized" style={{ textAlign: 'center' }}>Generacion de guias globalpaq por cupones</h1>
       <div className={classes.root}>
 
@@ -879,7 +921,7 @@ export default function CustomizedSteppers() {
           {activeStep === steps.length ? (
             <div style={{ textAlign: 'center' }}>
               <Typography className={classes.instructions} >
-                Gracias por generar su guia con Globalpaq buen dia.
+                Gracias por Generar su Etiqueta de envio con Nosotros.
             </Typography>
               <Button onClick={handleReset} className={classes.button}>
                 Ver datos de mi guia

@@ -6,7 +6,7 @@ function Input(props) {
         <div className="column">
             <label>{props.titulo}</label>
             <input name={props.name} placeholder={props.titulo} className="input" value={props.value} disabled={props.disabled} 
-            onChange={props.onChange} onKeyUp={props.onKeyUp}/>
+            onChange={props.onChange} onKeyUp={props.onKeyUp} maxLength={props.maxLength}/>
         </div>
     )
 }
@@ -84,19 +84,20 @@ const Remitente = (props) => {
             >
                 <div className="columns is-desktop">
                     <Input titulo='Numero de cupon:' disabled={true} value={props.valueCodigo} />
-                    <Input titulo='Nombre:' onChange={props.onChange} value={props.valueNombre} name='nombreRemitente' />
-                    <Input titulo='Compañia:' onChange={props.onChange} value={props.valueCompania} name='CompaniaRemitente' />
+                    <Input titulo='Nombre:' onChange={props.onChange} value={props.valueNombre} name='nombreRemitente' maxLength={29}/>
+                    <Input titulo='Compañia:' onChange={props.onChange} value={props.valueCompania} name='CompaniaRemitente' maxLength={35} />
                     <div className="column is-2">
                         <label>Telefono:</label>
                         <input name="telefonoRemitente"  placeholder="5589369568" className="input" onChange={props.onChange} value={props.valueTelefono}
                         onKeyUp={props.validaTelefono}
+                        maxLength={10}
                          />
                     </div>
-                    <Input titulo='Calle:' onChange={props.onChange} name='calleRemitente' value={props.valueCalle} />
+                    <Input titulo='Calle:' onChange={props.onChange} name='calleRemitente' value={props.valueCalle} maxLength={35}/>
                 </div>
                 <div className="columns is-desktop" >
                 <Input titulo='Codigo postal:' onChange={props.onChange} name="cpRemitente"
-                      value={props.valueCp} onKeyUp={props.keycpR}/>
+                      value={props.valueCp} onKeyUp={props.keycpR} maxLength={5}/>
                     <div className="column">
                     <label>Colonia:</label><br />
                         <div className="select">
@@ -106,10 +107,10 @@ const Remitente = (props) => {
                             </select>
                     </div>
                     </div>
-                    <Input titulo='Referencias:' onChange={props.onChange} name="referenciasRemitente" value={props.valueReferencias} />
-                    <Input titulo='Numero exterior:' onChange={props.onChange} name="exteriorRemitente" value={props.valueExterior} />
+                    <Input titulo='Referencias:' onChange={props.onChange} name="referenciasRemitente" value={props.valueReferencias} maxLength={35}/>
+                    <Input titulo='Numero exterior:' onChange={props.onChange} name="exteriorRemitente" value={props.valueExterior} maxLength={35}/>
                     
-                    <Input titulo='Ciudad:' onChange={props.onChange} name="ciudadRemitente" value={props.valueCiudad} />
+                    <Input titulo='Ciudad:' onChange={props.onChange} name="ciudadRemitente" value={props.valueCiudad} maxLength={35}/>
                 </div>
                 <div className="columns is-desktop">
 
@@ -155,7 +156,7 @@ const Remitente = (props) => {
                     </div>
                     <div className="column is-one-quarter">
                         <label>Email:</label>
-                        <input name="emailRemitente" placeholder="ejemplo@gmail.com" className="input" onChange={props.onChange} value={props.valueEmail} />
+                        <input maxLength={35} name="emailRemitente" placeholder="ejemplo@gmail.com" className="input" onChange={props.onChange} value={props.valueEmail} />
                     </div>
                 </div>
 
@@ -180,18 +181,19 @@ const Destinatario = (props) => {
         <form>
             <div className="container" style={{ marginLeft: '15%', marginRight: '15%' }}>
                 <div className="columns is-desktop">
-                    <Input titulo='Nombre:' onChange={props.onChange} value={props.valueNombre} name='nombreDestinatario' />
-                    <Input titulo='Compañia:' onChange={props.onChange} value={props.valueCompania} name='CompaniaDestinatario' />
+                    <Input titulo='Nombre:' onChange={props.onChange} value={props.valueNombre} name='nombreDestinatario' maxLength={29}/>
+                    <Input titulo='Compañia:' onChange={props.onChange} value={props.valueCompania} name='CompaniaDestinatario' maxLength={35}/>
                     <div className="column is-2">
                         <label>Telefono:</label>
                         <input name="telefonoDestinatario"  placeholder="5589369568" className="input" onChange={props.onChange} value={props.valueTelefono}
                         onKeyUp={props.validaTelefono}
+                        maxLength={10}
                         />
                     </div>
-                    <Input titulo='Calle:' onChange={props.onChange} name='calleDestinatario' value={props.valueCalle} />
+                    <Input titulo='Calle:' onChange={props.onChange} name='calleDestinatario' value={props.valueCalle} maxLength={35}/>
                 </div>
                 <div className="columns is-desktop" >
-                <Input titulo='Codigo postal:' onChange={props.onChange} name="cpDestinatario" value={props.valueCp} onKeyUp={props.keycpD}/>
+                <Input titulo='Codigo postal:' maxLength={5} onChange={props.onChange} name="cpDestinatario" value={props.valueCp} onKeyUp={props.keycpD}/>
                 <div className="column">
                     <label>Colonia:</label><br />
                         <div className="select">
@@ -201,10 +203,10 @@ const Destinatario = (props) => {
                             </select>
                     </div>
                     </div>
-                    <Input titulo='Referencias:' onChange={props.onChange} name="referenciasDestinatario" value={props.valueReferencias} />
-                    <Input titulo='Numero exterior:' onChange={props.onChange} name="exteriorDestinatario" value={props.valueExterior} />
+                    <Input titulo='Referencias:' maxLength={35} onChange={props.onChange} name="referenciasDestinatario" value={props.valueReferencias} />
+                    <Input titulo='Numero exterior:' maxLength={35} onChange={props.onChange} name="exteriorDestinatario" value={props.valueExterior} />
                     
-                    <Input titulo='Ciudad:' onChange={props.onChange} name="ciudadDestinatario" value={props.valueCiudad} />
+                    <Input titulo='Ciudad:' maxLength={35} onChange={props.onChange} name="ciudadDestinatario" value={props.valueCiudad} />
                 </div>
                 <div className="columns is-desktop">
                    
@@ -250,7 +252,7 @@ const Destinatario = (props) => {
                     </div>
                     <div className="column is-one-quarter">
                         <label>Email:</label>
-                        <input name="emailDestinatario" placeholder="ejemplo@gmail.com" className="input" onChange={props.onChange} value={props.valueEmail} />
+                        <input name="emailDestinatario" maxLength={35} placeholder="ejemplo@gmail.com" className="input" onChange={props.onChange} value={props.valueEmail} />
                     </div>
                 </div>
             </div>
